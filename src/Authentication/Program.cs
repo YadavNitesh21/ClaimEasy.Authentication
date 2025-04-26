@@ -1,3 +1,9 @@
+using Authentication.DBContext;
+using Authentication.Helper;
+using Authentication.Services;
+using Authentication.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AuthDbConnection")));
+
+builder.Services.AddSingleton<JwtHelper>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -17,8 +31,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 
