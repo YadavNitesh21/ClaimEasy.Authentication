@@ -15,9 +15,10 @@ namespace Authentication.Controllers
     {
         private readonly IAuthService _authService;
         private readonly JwtHelper _jwtHelper;
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService,JwtHelper jwtHelper)
         {
             _authService = authService;
+            _jwtHelper = jwtHelper;
         }
 
         [HttpPost("register")]
@@ -31,27 +32,27 @@ namespace Authentication.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var user = await _authService.GetUserByUsernameAsync(loginDto.Username);
-            if (user == null || !VerifyPassword(loginDto.Password, user.PasswordHash, user.Salt))
+            if (user == null || !PasswordHelper.VerifyPassword(loginDto.Password, user.PasswordHash, user.Salt))
             {
                 return Unauthorized("Invalid username or password");
             }
 
             var token = _jwtHelper.GenerateToken(user);
-            return Ok(new { Token = token });
+            return Ok(token);
         }
 
-        private bool VerifyPassword(string inputPassword, string storedPasswordHash, string storedSalt)
-        {
-            // Hash the input password with the stored salt
-            using (var sha256 = SHA256.Create())
-            {
-                var saltedPassword = inputPassword + storedSalt;
-                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
-                var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        //private bool VerifyPassword(string inputPassword, string storedPasswordHash, string storedSalt)
+        //{
+        //    // Hash the input password with the stored salt
+        //    using (var sha256 = SHA256.Create())
+        //    {
+        //        var saltedPassword = inputPassword + storedSalt;
+        //        var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
+        //        var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 
-                // Compare the hashed password with the stored hash
-                return hashString == storedPasswordHash;
-            }
-        }
+        //        // Compare the hashed password with the stored hash
+        //        return hashString == storedPasswordHash;
+        //    }
+        //}
     }
 }

@@ -19,6 +19,8 @@ builder.Services.AddSingleton<JwtHelper>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddAuthentication(JwtBearerDefaults);
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();

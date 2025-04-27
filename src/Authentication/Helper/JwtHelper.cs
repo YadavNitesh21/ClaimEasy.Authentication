@@ -1,4 +1,5 @@
-﻿using AuthenticationService.Models;
+﻿using Authentication.DTOs;
+using AuthenticationService.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -19,12 +20,14 @@ namespace Authentication.Helper
             _audience = configuration["JwtSettings:Audience"];
         }
 
-        public string GenerateToken(AuthUser user)
+        public TokenResponseDto GenerateToken(AuthUser user)
         {
             var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.MobilePhone, user.Phone),
             // Add more claims as needed
         };
 
@@ -37,8 +40,13 @@ namespace Authentication.Helper
                 expires: DateTime.Now.AddHours(1),
                 signingCredentials: creds
             );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenData = new TokenResponseDto
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                GeneratedAt = DateTime.UtcNow
+            };
+            return tokenData;
         }
     }
 
